@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">pruebaQuechua</string>
+    <string name="hint_email">Correo electrónico</string>
+    <string name="hint_password">Contraseña</string>
+    <string name="btn_ingresar">Ingresar sistema</string>
+    <string name="btn_olvido">¿Olvidaste tu contraseña?</string>
+    <string name="btn_registrarse">Registrarse</string>
+    <string name="btn_invitado">Ingresar como invitado</string>
+    <string name="desc_logo">Logo de la aplicación</string>
+
+    <string name="title_menu">Menú Principal</string>
+    <string name="cat_educacion">Educación</string>
+    <string name="cat_tecnologia">Tecnología</string>
+    <string name="cat_medicina">Medicina</string>
+    <string name="desc_educacion">Recursos y cursos de aprendizaje</string>
+    <string name="desc_tecnologia">Últimos avances y gadgets</string>
+    <string name="desc_medicina">Salud, bienestar y medicina</string>
+
+    <string name="title_dictionary">Diccionario</string>
+    <string name="hint_search_word">Buscar palabra...</string>
+
+    <string name="title_register">Crear Cuenta</string>
+    <string name="hint_name">Nombre completo</string>
+    <string name="hint_confirm_password">Confirmar contraseña</string>
+    <string name="btn_crear_cuenta">Finalizar Registro</string>
+    <string name="msg_have_account">¿Ya tienes cuenta? </string>
+    <string name="btn_volver_login">Inicia sesión</string>
+
+    <string name="title_forgot_password">Recuperar Contraseña</string>
+    <string name="desc_forgot_password">Ingresa tu correo electrónico para enviarte las instrucciones de recuperación.</string>
+    <string name="btn_enviar_recuperacion">Enviar Instrucciones</string>
+</resources>
