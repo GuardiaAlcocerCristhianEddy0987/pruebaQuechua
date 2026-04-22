@@ -3,15 +3,19 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_educacion"
-            android:icon="@android:drawable/ic_menu_edit"
+            android:icon="@drawable/ic_edu_modern"
             android:title="Educación" />
         <item
             android:id="@+id/nav_tecnologia"
-            android:icon="@android:drawable/ic_menu_view"
+            android:icon="@drawable/ic_tech_modern"
             android:title="Tecnología" />
         <item
             android:id="@+id/nav_medicina"
-            android:icon="@android:drawable/ic_menu_compass"
+            android:icon="@drawable/ic_medical_modern"
             android:title="Medicina" />
+        <item
+            android:id="@+id/nav_biologia"
+            android:icon="@drawable/ic_biology_modern"
+            android:title="Biología" />
     </group>
 </menu>

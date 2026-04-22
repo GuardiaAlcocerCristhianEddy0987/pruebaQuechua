@@ -4,4 +4,8 @@
     <color name="white">#FFFFFFFF</color>
     <color name="red_primary">#E53935</color>
     <color name="red_light">#FFEBEE</color>
+
+    <!-- Colores para el fondo dinámico -->
+    <color name="bg_start">#FFFFFF</color>
+    <color name="bg_end">#FFF5F5</color>
 </resources>

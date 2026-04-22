@@ -12,9 +12,11 @@
     <string name="cat_educacion">Educación</string>
     <string name="cat_tecnologia">Tecnología</string>
     <string name="cat_medicina">Medicina</string>
+    <string name="cat_biologia">Biología</string>
     <string name="desc_educacion">Recursos y cursos de aprendizaje</string>
     <string name="desc_tecnologia">Últimos avances y gadgets</string>
     <string name="desc_medicina">Salud, bienestar y medicina</string>
+    <string name="desc_biologia">Estudio de los seres vivos y naturaleza</string>
 
     <string name="title_dictionary">Diccionario</string>
     <string name="hint_search_word">Buscar palabra...</string>

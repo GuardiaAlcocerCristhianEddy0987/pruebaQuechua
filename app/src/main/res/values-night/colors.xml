@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FFFFFFFF</color>
+    <color name="white">#FF121212</color>
+    <color name="red_primary">#E53935</color>
+    <color name="red_light">#2C1B1B</color>
+
+    <!-- Colores para el fondo dinámico en modo oscuro -->
+    <color name="bg_start">#121212</color>
+    <color name="bg_end">#1A1212</color>
+</resources>
