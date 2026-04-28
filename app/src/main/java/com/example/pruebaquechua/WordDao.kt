@@ -9,7 +9,16 @@ interface WordDao {
     @Query("SELECT * FROM diccionario WHERE category = :category")
     suspend fun getWordsByCategory(category: String): List<WordEntity>
 
-    @Insert
+    @Query("SELECT * FROM diccionario WHERE remoteId IS NULL")
+    suspend fun getLocalOnlyWords(): List<WordEntity>
+
+    @Query("SELECT * FROM diccionario WHERE remoteId = :remoteId LIMIT 1")
+    suspend fun getWordByRemoteId(remoteId: String): WordEntity?
+
+    @Query("SELECT * FROM diccionario WHERE word = :word AND definition = :definition LIMIT 1")
+    suspend fun findWordByContent(word: String, definition: String): WordEntity?
+
+    @Insert(onConflict = androidx.room.OnConflictStrategy.REPLACE)
     suspend fun insert(word: WordEntity): Long
 
     @androidx.room.Update

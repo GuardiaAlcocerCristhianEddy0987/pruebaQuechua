@@ -67,11 +67,18 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun saveUser(username: String, password: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val newUser = UserEntity(username = username, password = password, role = "USER")
+            // Lista de nombres de usuario que tendrán permisos de administrador
+            val adminUsernames = listOf("admin", "admin2", "admin3", "admin4")
+            
+            // Si el nombre está en la lista, el rol es ADMIN, de lo contrario es USER
+            val role = if (adminUsernames.contains(username.lowercase())) "ADMIN" else "USER"
+            
+            val newUser = UserEntity(username = username, password = password, role = role)
             db.userDao().insert(newUser)
             
             withContext(Dispatchers.Main) {
-                Toast.makeText(this@RegisterActivity, "Registro completado con éxito", Toast.LENGTH_LONG).show()
+                val mensaje = if (role == "ADMIN") "Registro de Administrador exitoso" else "Registro completado con éxito"
+                Toast.makeText(this@RegisterActivity, mensaje, Toast.LENGTH_LONG).show()
                 finish()
             }
         }

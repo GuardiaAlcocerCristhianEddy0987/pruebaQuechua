@@ -11,5 +11,7 @@ data class WordEntity(
     val type: String = "Sustantivo", // Verbo, Sustantivo, Participio, Sujeto, etc.
     val definition: String,
     val audioResId: Int? = null,
-    val audioPath: String? = null // Para audios grabados localmente
+    val audioPath: String? = null, // Para audios grabados localmente
+    val audioUrl: String? = null, // Para audios sincronizados en la nube
+    val remoteId: String? = null // ID de Firestore para evitar duplicados
 )
