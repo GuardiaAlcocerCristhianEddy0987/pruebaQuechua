@@ -73,7 +73,8 @@ class RegisterActivity : AppCompatActivity() {
             // Si el nombre está en la lista, el rol es ADMIN, de lo contrario es USER
             val role = if (adminUsernames.contains(username.lowercase())) "ADMIN" else "USER"
             
-            val newUser = UserEntity(username = username, password = password, role = role)
+            val passwordHash = HashUtils.sha256(password)
+            val newUser = UserEntity(username = username, password = passwordHash, role = role)
             db.userDao().insert(newUser)
             
             withContext(Dispatchers.Main) {

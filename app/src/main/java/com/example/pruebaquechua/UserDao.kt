@@ -5,14 +5,14 @@ import androidx.room.*
 @Dao
 interface UserDao {
     @Query("SELECT * FROM users WHERE username = :username LIMIT 1")
-    fun getUserByUsername(username: String): UserEntity?
+    suspend fun getUserByUsername(username: String): UserEntity?
 
     @Insert
-    fun insert(user: UserEntity)
+    suspend fun insert(user: UserEntity)
 
     @Update
-    fun update(user: UserEntity)
+    suspend fun update(user: UserEntity)
 
     @Query("SELECT COUNT(*) FROM users")
-    fun getCount(): Int
+    suspend fun getCount(): Int
 }

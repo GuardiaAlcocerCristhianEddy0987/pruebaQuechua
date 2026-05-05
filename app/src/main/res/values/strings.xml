@@ -9,14 +9,43 @@
     <string name="desc_logo">Logo de la aplicación</string>
 
     <string name="title_menu">Menú Principal</string>
+    <string name="cat_general">GENERAL</string>
     <string name="cat_educacion">Educación</string>
     <string name="cat_tecnologia">Tecnología</string>
     <string name="cat_medicina">Medicina</string>
     <string name="cat_biologia">Biología</string>
+    <string name="cat_artes_plasticas">Artes Plásticas</string>
+    <string name="cat_educacion_especial">Educación Especial</string>
+    <string name="cat_matematicas">Matemáticas</string>
+    <string name="cat_ciencias_sociales">Ciencias Sociales</string>
+    <string name="cat_valores_religiones">Valores y Religiones</string>
+    <string name="cat_comunicacion_lenguajes">Comunicación y Lenguajes</string>
+    <string name="cat_musica">Música</string>
+    <string name="cat_fisica">Física</string>
+    <string name="cat_quimica">Química</string>
+    <string name="cat_lengua_extranjera">Lengua Extranjera</string>
+    <string name="cat_filosofia">Filosofía</string>
+    <string name="cat_gastronomia">Gastronomía</string>
+    <string name="cat_juridico_legal">Jurídico Legal</string>
+
+    <string name="desc_general">Todas las materias integradas</string>
     <string name="desc_educacion">Recursos y cursos de aprendizaje</string>
     <string name="desc_tecnologia">Últimos avances y gadgets</string>
     <string name="desc_medicina">Salud, bienestar y medicina</string>
     <string name="desc_biologia">Estudio de los seres vivos y naturaleza</string>
+    <string name="desc_artes_plasticas">Expresión artística y creatividad</string>
+    <string name="desc_educacion_especial">Apoyo y recursos especializados</string>
+    <string name="desc_matematicas">Números, lógica y cálculos</string>
+    <string name="desc_ciencias_sociales">Sociedad, historia y cultura</string>
+    <string name="desc_valores_religiones">Ética, valores y espiritualidad</string>
+    <string name="desc_comunicacion_lenguajes">Estudio de la lengua y literatura</string>
+    <string name="desc_musica">Teoría musical e instrumentos</string>
+    <string name="desc_fisica">Estudio de la materia y energía</string>
+    <string name="desc_quimica">Ciencia de las sustancias y reacciones</string>
+    <string name="desc_lengua_extranjera">Idiomas y comunicación global</string>
+    <string name="desc_filosofia">Pensamiento, ética y existencia</string>
+    <string name="desc_gastronomia">Arte culinario y tradiciones</string>
+    <string name="desc_juridico_legal">Leyes, justicia y normativas</string>
 
     <string name="title_dictionary">Diccionario</string>
     <string name="hint_search_word">Buscar palabra...</string>

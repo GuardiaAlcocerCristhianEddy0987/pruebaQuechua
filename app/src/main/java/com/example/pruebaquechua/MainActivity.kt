@@ -24,10 +24,9 @@ class MainActivity : AppCompatActivity() {
 
         db = AppDatabase.getDatabase(this)
         
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        // Asegurar que los usuarios y palabras existan apenas abre la app
+        CoroutineScope(Dispatchers.IO).launch {
+            AppDatabase.prepopulate(this@MainActivity, db)
         }
 
         val btnIngresar = findViewById<Button>(R.id.btnIngresar)
@@ -49,9 +48,10 @@ class MainActivity : AppCompatActivity() {
 
             CoroutineScope(Dispatchers.IO).launch {
                 val user = db.userDao().getUserByUsername(username)
+                val hashedPassword = HashUtils.sha256(password)
                 
                 withContext(Dispatchers.Main) {
-                    if (user != null && user.password == password) {
+                    if (user != null && user.password == hashedPassword) {
                         val intent = Intent(this@MainActivity, MenuActivity::class.java)
                         intent.putExtra("IS_GUEST", false)
                         intent.putExtra("IS_ADMIN", user.role == "ADMIN")
