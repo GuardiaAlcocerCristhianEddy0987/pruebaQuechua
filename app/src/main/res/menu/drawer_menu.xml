@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_general"
+            android:icon="@drawable/ic_edu_minimal"
+            android:title="GENERAL" />
+        <item
+            android:id="@+id/nav_educacion"
+            android:icon="@drawable/ic_edu_modern"
+            android:title="Educación" />
+        <item
+            android:id="@+id/nav_tecnologia"
+            android:icon="@drawable/ic_tech_modern"
+            android:title="Tecnología" />
+        <item
+            android:id="@+id/nav_medicina"
+            android:icon="@drawable/ic_medical_modern"
+            android:title="Medicina" />
+        <item
+            android:id="@+id/nav_biologia"
+            android:icon="@drawable/ic_biology_modern"
+            android:title="Biología" />
+        <item
+            android:id="@+id/nav_artes_plasticas"
+            android:icon="@drawable/ic_art_modern"
+            android:title="Artes Plásticas" />
+        <item
+            android:id="@+id/nav_educacion_especial"
+            android:icon="@drawable/ic_special_edu_modern"
+            android:title="Educación Especial" />
+        <item
+            android:id="@+id/nav_matematicas"
+            android:icon="@drawable/ic_math_modern"
+            android:title="Matemáticas" />
+        <item
+            android:id="@+id/nav_ciencias_sociales"
+            android:icon="@drawable/ic_social_modern"
+            android:title="Ciencias Sociales" />
+        <item
+            android:id="@+id/nav_valores_religiones"
+            android:icon="@drawable/ic_religion_modern"
+            android:title="Valores y Religiones" />
+        <item
+            android:id="@+id/nav_comunicacion_lenguajes"
+            android:icon="@drawable/ic_comms_modern"
+            android:title="Comunicación y Lenguajes" />
+        <item
+            android:id="@+id/nav_musica"
+            android:icon="@drawable/ic_music_modern"
+            android:title="Música" />
+        <item
+            android:id="@+id/nav_fisica"
+            android:icon="@drawable/ic_math_modern"
+            android:title="Física" />
+        <item
+            android:id="@+id/nav_quimica"
+            android:icon="@drawable/ic_biology_modern"
+            android:title="Química" />
+        <item
+            android:id="@+id/nav_lengua_extranjera"
+            android:icon="@drawable/ic_comms_modern"
+            android:title="Lengua Extranjera" />
+        <item
+            android:id="@+id/nav_filosofia"
+            android:icon="@drawable/ic_edu_modern"
+            android:title="Filosofía" />
+        <item
+            android:id="@+id/nav_gastronomia"
+            android:icon="@drawable/ic_art_modern"
+            android:title="Gastronomía" />
+        <item
+            android:id="@+id/nav_juridico_legal"
+            android:icon="@drawable/ic_social_modern"
+            android:title="Jurídico Legal" />
+    </group>
+</menu>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvWord"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/tvType"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/holo_orange_light"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textColor="@android:color/white"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@id/tvWord"
+            app:layout_constraintEnd_toStartOf="@id/btnAudio"
+            app:layout_constraintTop_toTopOf="@id/tvWord" />
+
+        <TextView
+            android:id="@+id/tvCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textColor="@color/red_primary"
+            android:textSize="12sp"
+            android:textStyle="italic"
+            app:layout_constraintEnd_toStartOf="@+id/btnAudio"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvWord" />
+
+        <TextView
+            android:id="@+id/tvDefinition"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="4sp"
+            android:textColor="#333333"
+            android:textSize="15sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvCategory" />
+
+        <ImageButton
+            android:id="@+id/btnAudio"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Escuchar pronunciación"
+            android:src="@drawable/ic_audio_modern"
+            app:layout_constraintBottom_toBottomOf="@id/tvCategory"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvWord"
+            app:tint="@color/red_primary" />
+
+        <LinearLayout
+            android:id="@+id/llAdminActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvDefinition">
+
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Editar palabra"
+                android:src="@drawable/ic_edit_modern"
+                app:tint="@android:color/holo_blue_dark" />
+
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Eliminar palabra"
+                android:src="@drawable/ic_delete_modern"
+                app:tint="@android:color/holo_red_dark" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>
