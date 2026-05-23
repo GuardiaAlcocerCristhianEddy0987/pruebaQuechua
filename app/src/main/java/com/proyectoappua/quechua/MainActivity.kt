@@ -36,11 +36,11 @@ class MainActivity : AppCompatActivity() {
         val tilPassword = findViewById<TextInputLayout>(R.id.tilPassword)
 
         btnIngresar.setOnClickListener {
-            val username = tilEmail.editText?.text.toString()
+            val username = tilEmail.editText?.text.toString().trim().lowercase()
             val password = tilPassword.editText?.text.toString()
 
             if (username.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Por favor complete todos los campos:", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 

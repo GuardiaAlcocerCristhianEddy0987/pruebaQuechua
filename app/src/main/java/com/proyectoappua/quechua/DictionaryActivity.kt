@@ -12,6 +12,7 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
@@ -223,7 +224,12 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
                                     val existing = db.wordDao().getWordByRemoteId(doc.document.id)
                                     if (existing != null) {
-                                        db.wordDao().update(word.copy(id = existing.id))
+                                        // Mantenemos el ID local y el audioPath local, pero actualizamos los datos desde la nube
+                                        val updatedFromRemote = word.copy(
+                                            id = existing.id,
+                                            audioPath = existing.audioPath
+                                        )
+                                        db.wordDao().update(updatedFromRemote)
                                     }
                                 }
                                 com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
@@ -243,17 +249,19 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun cargarDatos() {
-        val isGuest = intent.getBooleanExtra("IS_GUEST", false)
+        val etSearch = findViewById<TextInputLayout>(R.id.tilSearch).editText
+        val query = etSearch?.text?.toString() ?: ""
+
+        // Si estamos en GENERAL y hay una búsqueda, no vaciamos la lista, sino que refrescamos el filtro
+        if (currentCategory == "GENERAL" && query.isNotEmpty()) {
+            filtrar(query)
+            return
+        }
+
         lifecycleScope.launch {
             val words = withContext(Dispatchers.IO) {
                 if (currentCategory == "GENERAL") {
-                    val allWords = db.wordDao().getAllWords()
-                    if (isGuest) {
-                        // Filtramos solo las categorías permitidas para invitados
-                        allWords.filter { it.category == "Educación" || it.category == "Tecnología" }
-                    } else {
-                        allWords
-                    }
+                    emptyList<WordEntity>()
                 } else {
                     db.wordDao().getWordsByCategory(currentCategory)
                 }
@@ -379,7 +387,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                 Toast.makeText(this@DictionaryActivity, "Sincronizando...", Toast.LENGTH_SHORT).show()
             }
 
-            val wordMap = hashMapOf(
+            val wordMap: Map<String, Any?> = mapOf(
                 "word" to word.word,
                 "definition" to word.definition,
                 "category" to word.category,
@@ -438,6 +446,18 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setTitle("Editar Palabra")
             .setView(dialogView)
             .setPositiveButton("Actualizar") { _, _ ->
+                // Si el usuario olvidó detener la grabación, la detenemos nosotros de forma segura
+                if (isRecording) {
+                    try {
+                        mediaRecorder?.stop()
+                        mediaRecorder?.release()
+                        mediaRecorder = null
+                        isRecording = false
+                    } catch (e: Exception) {
+                        Log.e("Audio", "Error al detener grabación automática: ${e.message}")
+                    }
+                }
+
                 val word = etWord.text.toString()
                 val definition = etDefinition.text.toString()
                 val category = spCategory.selectedItem.toString()
@@ -445,12 +465,16 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
                 if (word.isNotEmpty() && definition.isNotEmpty()) {
                     if (audioPath != null && audioPath != item.audioPath) {
+                        Toast.makeText(this, "Subiendo nuevo audio...", Toast.LENGTH_SHORT).show()
                         val file = Uri.fromFile(File(audioPath!!))
                         val audioRef = storage.reference.child("audios/${file.lastPathSegment}")
                         audioRef.putFile(file).addOnSuccessListener {
                             audioRef.downloadUrl.addOnSuccessListener { uri ->
                                 realizarActualizacion(item, word, definition, category, type, audioPath, uri.toString())
                             }
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "Error al subir audio", Toast.LENGTH_SHORT).show()
+                            realizarActualizacion(item, word, definition, category, type, item.audioPath, item.audioUrl)
                         }
                     } else {
                         realizarActualizacion(item, word, definition, category, type, item.audioPath, item.audioUrl)
@@ -466,11 +490,35 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         lifecycleScope.launch(Dispatchers.IO) {
             db.wordDao().update(updatedWord)
             if (item.remoteId != null) {
-                val wordMap = hashMapOf("word" to word, "definition" to definition, "category" to category, "type" to type, "audioUrl" to url)
-                firestore.collection("palabras").document(item.remoteId!!).set(wordMap)
+                val wordMap: Map<String, Any?> = mapOf(
+                    "word" to word,
+                    "definition" to definition,
+                    "category" to category,
+                    "type" to type,
+                    "audioUrl" to url
+                )
+                firestore.collection("palabras").document(item.remoteId!!)
+                    .update(wordMap)
+                    .addOnSuccessListener {
+                        Log.d("Firestore", "Palabra actualizada: $word")
+                        runOnUiThread {
+                            Toast.makeText(this@DictionaryActivity, "Sincronización completa", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("Firestore", "Error al sincronizar: ${e.message}")
+                        runOnUiThread {
+                            Toast.makeText(this@DictionaryActivity, "Error al sincronizar con la nube", Toast.LENGTH_SHORT).show()
+                        }
+                    }
             }
             withContext(Dispatchers.Main) {
-                cargarDatos()
+                if (currentCategory != "GENERAL") {
+                    cargarDatos()
+                } else {
+                    // En GENERAL no recargamos para no vaciar la búsqueda actual
+                    Toast.makeText(this@DictionaryActivity, "Cambios guardados", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -505,28 +553,36 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun toggleRecording(btn: Button, status: TextView) {
-        if (!isRecording) {
-            val file = File(externalCacheDir, "audio_${System.currentTimeMillis()}.mp3")
-            audioPath = file.absolutePath
-            mediaRecorder = MediaRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setOutputFile(audioPath)
-                try {
+        try {
+            if (!isRecording) {
+                val file = File(externalCacheDir, "audio_${System.currentTimeMillis()}.mp3")
+                audioPath = file.absolutePath
+                mediaRecorder = MediaRecorder().apply {
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    setOutputFile(audioPath)
                     prepare()
                     start()
-                    isRecording = true
-                    btn.text = "Detener"
-                    status.text = "Grabando..."
-                } catch (e: IOException) { }
+                }
+                isRecording = true
+                btn.text = "Detener"
+                status.text = "Grabando..."
+            } else {
+                mediaRecorder?.apply {
+                    stop()
+                    release()
+                }
+                mediaRecorder = null
+                isRecording = false
+                btn.text = "Grabar Audio"
+                status.text = "Audio listo"
             }
-        } else {
-            mediaRecorder?.apply { stop(); release() }
-            mediaRecorder = null
+        } catch (e: Exception) {
+            Log.e("Audio", "Error en grabación: ${e.message}")
+            Toast.makeText(this, "Error con el micrófono", Toast.LENGTH_SHORT).show()
             isRecording = false
             btn.text = "Grabar Audio"
-            status.text = "Audio listo"
         }
     }
 

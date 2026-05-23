@@ -25,8 +25,8 @@ class ForgotPasswordActivity : AppCompatActivity() {
         val btnVolver = findViewById<Button>(R.id.btnVolverLoginForgot)
 
         btnActualizar.setOnClickListener {
-            val username = tilUsername.editText?.text.toString()
-            val newPassword = tilNewPassword.editText?.text.toString()
+            val username = tilUsername.editText?.text.toString().trim().lowercase()
+            val newPassword = tilNewPassword.editText?.text.toString().trim()
 
             if (username.isEmpty() || newPassword.isEmpty()) {
                 Toast.makeText(this, "Por favor complete todos los campos", Toast.LENGTH_SHORT).show()
@@ -58,8 +58,9 @@ class ForgotPasswordActivity : AppCompatActivity() {
 
     private fun actualizarPassword(user: UserEntity, newPassword: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            val updatedUser = user.copy(password = newPassword)
-            db.userDao().update(updatedUser) // Asumiendo que existe update en UserDao
+            val hashedPassword = HashUtils.sha256(newPassword)
+            val updatedUser = user.copy(password = hashedPassword)
+            db.userDao().update(updatedUser)
             
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ForgotPasswordActivity, "Contraseña actualizada con éxito", Toast.LENGTH_LONG).show()

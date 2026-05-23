@@ -28,7 +28,7 @@ class RegisterActivity : AppCompatActivity() {
         val btnVolver = findViewById<Button>(R.id.btnVolverLogin)
 
         btnFinalizar.setOnClickListener {
-            val username = tilEmail.editText?.text.toString() // Usamos el email como nombre de usuario para el login
+            val username = tilEmail.editText?.text.toString().trim().lowercase()
             val password = tilPassword.editText?.text.toString()
             val confirmPassword = tilConfirmPassword.editText?.text.toString()
 
@@ -67,11 +67,10 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun saveUser(username: String, password: String) {
         CoroutineScope(Dispatchers.IO).launch {
-            // Lista de nombres de usuario que tendrán permisos de administrador
+            // El username ya viene normalizado (trim y lowercase) desde el listener
             val adminUsernames = listOf("admin", "admin2", "admin3", "admin4")
             
-            // Si el nombre está en la lista, el rol es ADMIN, de lo contrario es USER
-            val role = if (adminUsernames.contains(username.lowercase())) "ADMIN" else "USER"
+            val role = if (adminUsernames.contains(username)) "ADMIN" else "USER"
             
             val passwordHash = HashUtils.sha256(password)
             val newUser = UserEntity(username = username, password = passwordHash, role = role)
