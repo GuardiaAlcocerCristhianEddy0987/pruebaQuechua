@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@Database(entities = [WordEntity::class, UserEntity::class], version = 31)
+@Database(entities = [WordEntity::class, UserEntity::class], version = 33)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
     abstract fun userDao(): UserDao
@@ -32,22 +32,22 @@ abstract class AppDatabase : RoomDatabase() {
 
         suspend fun prepopulate(context: Context, db: AppDatabase) = withContext(Dispatchers.IO) {
             val prefs = context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-            val isPopulated = prefs.getBoolean("db_populated_v31", false)
+            val isPopulated = prefs.getBoolean("db_populated_v33", false)
 
             if (!isPopulated) {
                 if (db.wordDao().getCount() == 0) {
                     populateDatabase(db.wordDao())
                 }
-                if (db.userDao().getCount() == 0) {
-                    populateUsers(db.userDao())
-                }
-                prefs.edit().putBoolean("db_populated_v31", true).apply()
+                populateUsers(db.userDao())
+                prefs.edit().putBoolean("db_populated_v33", true).apply()
             }
         }
 
         private suspend fun populateUsers(userDao: UserDao) {
             userDao.insert(UserEntity(username = "admin", password = HashUtils.sha256("123"), role = "ADMIN"))
             userDao.insert(UserEntity(username = "user", password = HashUtils.sha256("123"), role = "USER"))
+            userDao.insert(UserEntity(username = "admin2", password = HashUtils.sha256("123"), role = "ADMIN"))
+            userDao.insert(UserEntity(username = "admin3", password = HashUtils.sha256("123"), role = "ADMIN"))
         }
 
         private suspend fun populateDatabase(wordDao: WordDao) {

@@ -115,7 +115,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             withContext(Dispatchers.Main) {
                 cargarDatos()
                 escucharCambiosFirebase()
-                sincronizarPalabrasLocales()
+                // sincronizarPalabrasLocales() // Comentado para evitar crear duplicados innecesarios
             }
         }
 
@@ -203,7 +203,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                             val word = WordEntity(
                                 word = remoteWord,
                                 definition = remoteDef,
-                                category = data["category"] as? String ?: "General",
+                                category = data["category"] as? String ?: "Educación",
                                 type = data["type"] as? String ?: "Sustantivo",
                                 audioUrl = data["audioUrl"] as? String,
                                 remoteId = doc.document.id
@@ -213,23 +213,48 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                                 com.google.firebase.firestore.DocumentChange.Type.ADDED -> {
                                     val existingById = db.wordDao().getWordByRemoteId(doc.document.id)
                                     if (existingById == null) {
+                                        // 1. Buscar coincidencia exacta (Palabra + Definición)
                                         val existingByContent = db.wordDao().findWordByContent(remoteWord, remoteDef)
-                                        if (existingByContent == null) {
-                                            db.wordDao().insert(word)
+                                        if (existingByContent != null) {
+                                            val updatedFromRemote = word.copy(
+                                                id = existingByContent.id,
+                                                audioPath = if (existingByContent.audioUrl == word.audioUrl) existingByContent.audioPath else null
+                                            )
+                                            db.wordDao().update(updatedFromRemote)
+                                            Log.d("Sync", "Palabra vinculada (exacta): $remoteWord")
                                         } else {
-                                            db.wordDao().update(existingByContent.copy(remoteId = doc.document.id))
+                                            // 2. Si no es exacta, buscar solo por Palabra (por si se editó la definición en otro admin)
+                                            val existingByWord = db.wordDao().getWordByText(remoteWord)
+                                            if (existingByWord != null && existingByWord.remoteId == null) {
+                                                val updatedFromRemote = word.copy(
+                                                    id = existingByWord.id,
+                                                    audioPath = if (existingByWord.audioUrl == word.audioUrl) existingByWord.audioPath else null
+                                                )
+                                                db.wordDao().update(updatedFromRemote)
+                                                Log.d("Sync", "Palabra vinculada (por texto): $remoteWord")
+                                            } else {
+                                                // 3. Es realmente nueva
+                                                db.wordDao().insert(word)
+                                                Log.d("Sync", "Nueva palabra insertada: $remoteWord")
+                                            }
                                         }
                                     }
                                 }
                                 com.google.firebase.firestore.DocumentChange.Type.MODIFIED -> {
-                                    val existing = db.wordDao().getWordByRemoteId(doc.document.id)
+                                    // Buscamos por ID o por Texto para "unificar" administradores que tengan duplicados
+                                    var existing = db.wordDao().getWordByRemoteId(doc.document.id)
+                                    if (existing == null) {
+                                        existing = db.wordDao().getWordByText(remoteWord)
+                                    }
+
                                     if (existing != null) {
-                                        // Mantenemos el ID local y el audioPath local, pero actualizamos los datos desde la nube
                                         val updatedFromRemote = word.copy(
                                             id = existing.id,
-                                            audioPath = existing.audioPath
+                                            remoteId = doc.document.id, // Forzamos el vínculo al ID editado
+                                            audioPath = if (existing.audioUrl == word.audioUrl) existing.audioPath else null
                                         )
                                         db.wordDao().update(updatedFromRemote)
+                                        Log.d("Sync", "Palabra sincronizada y vinculada: $remoteWord")
                                     }
                                 }
                                 com.google.firebase.firestore.DocumentChange.Type.REMOVED -> {
@@ -252,8 +277,8 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val etSearch = findViewById<TextInputLayout>(R.id.tilSearch).editText
         val query = etSearch?.text?.toString() ?: ""
 
-        // Si estamos en GENERAL y hay una búsqueda, no vaciamos la lista, sino que refrescamos el filtro
-        if (currentCategory == "GENERAL" && query.isNotEmpty()) {
+        // Si hay una búsqueda activa, refrescamos el filtro independientemente de la categoría
+        if (query.isNotEmpty()) {
             filtrar(query)
             return
         }
@@ -325,7 +350,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         spType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, types)
 
         audioPath = null
-        isRecording = false
+        stopRecordingSafely()
 
         btnRecord.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -339,6 +364,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setTitle("Agregar Palabra")
             .setView(dialogView)
             .setPositiveButton("Guardar") { _, _ ->
+                stopRecordingSafely()
                 val word = etWord.text.toString()
                 val definition = etDefinition.text.toString()
                 val category = spCategory.selectedItem.toString()
@@ -373,7 +399,8 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton("Cancelar") { _, _ -> stopRecordingSafely() }
+            .setOnCancelListener { stopRecordingSafely() }
             .show()
     }
 
@@ -425,12 +452,14 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             "Lengua Extranjera", "Filosofía", "Gastronomía", "Jurídico Legal"
         )
         spCategory.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories)
-        spCategory.setSelection(categories.indexOf(item.category))
+        val categoryIndex = categories.indexOf(item.category)
+        spCategory.setSelection(if (categoryIndex >= 0) categoryIndex else 0)
 
         val types = arrayOf("Sustantivo", "Verbo", "Participio", "Sujeto")
         spType.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, types)
         spType.setSelection(types.indexOf(item.type))
 
+        stopRecordingSafely()
         audioPath = item.audioPath
         if (audioPath != null) tvAudioStatus.text = "Audio actual conservado"
 
@@ -446,18 +475,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             .setTitle("Editar Palabra")
             .setView(dialogView)
             .setPositiveButton("Actualizar") { _, _ ->
-                // Si el usuario olvidó detener la grabación, la detenemos nosotros de forma segura
-                if (isRecording) {
-                    try {
-                        mediaRecorder?.stop()
-                        mediaRecorder?.release()
-                        mediaRecorder = null
-                        isRecording = false
-                    } catch (e: Exception) {
-                        Log.e("Audio", "Error al detener grabación automática: ${e.message}")
-                    }
-                }
-
+                stopRecordingSafely()
                 val word = etWord.text.toString()
                 val definition = etDefinition.text.toString()
                 val category = spCategory.selectedItem.toString()
@@ -481,7 +499,8 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     }
                 }
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton("Cancelar") { _, _ -> stopRecordingSafely() }
+            .setOnCancelListener { stopRecordingSafely() }
             .show()
     }
 
@@ -489,36 +508,41 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val updatedWord = item.copy(word = word, definition = definition, category = category, type = type, audioPath = path, audioUrl = url)
         lifecycleScope.launch(Dispatchers.IO) {
             db.wordDao().update(updatedWord)
+            
+            val wordMap: Map<String, Any?> = mapOf(
+                "word" to word,
+                "definition" to definition,
+                "category" to category,
+                "type" to type,
+                "audioUrl" to url
+            )
+
             if (item.remoteId != null) {
-                val wordMap: Map<String, Any?> = mapOf(
-                    "word" to word,
-                    "definition" to definition,
-                    "category" to category,
-                    "type" to type,
-                    "audioUrl" to url
-                )
                 firestore.collection("palabras").document(item.remoteId!!)
                     .update(wordMap)
                     .addOnSuccessListener {
                         Log.d("Firestore", "Palabra actualizada: $word")
-                        runOnUiThread {
-                            Toast.makeText(this@DictionaryActivity, "Sincronización completa", Toast.LENGTH_SHORT).show()
-                        }
                     }
                     .addOnFailureListener { e ->
                         Log.e("Firestore", "Error al sincronizar: ${e.message}")
-                        runOnUiThread {
-                            Toast.makeText(this@DictionaryActivity, "Error al sincronizar con la nube", Toast.LENGTH_SHORT).show()
+                    }
+            } else {
+                // Si la palabra no tiene remoteId (es pre-poblada), la subimos a la nube
+                firestore.collection("palabras")
+                    .add(wordMap)
+                    .addOnSuccessListener { docRef ->
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            db.wordDao().update(updatedWord.copy(remoteId = docRef.id))
                         }
                     }
+                    .addOnFailureListener { e ->
+                        Log.e("Firestore", "Error al crear en nube: ${e.message}")
+                    }
             }
+            
             withContext(Dispatchers.Main) {
-                if (currentCategory != "GENERAL") {
-                    cargarDatos()
-                } else {
-                    // En GENERAL no recargamos para no vaciar la búsqueda actual
-                    Toast.makeText(this@DictionaryActivity, "Cambios guardados", Toast.LENGTH_SHORT).show()
-                }
+                cargarDatos()
+                Toast.makeText(this@DictionaryActivity, "Se actualizó correctamente", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -538,16 +562,30 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     private fun reproducirAudio(word: WordEntity) {
-        if (word.audioUrl != null) {
-            val mediaPlayer = android.media.MediaPlayer()
-            try {
-                mediaPlayer.setDataSource(word.audioUrl)
-                mediaPlayer.prepareAsync()
-                mediaPlayer.setOnPreparedListener { it.start() }
-            } catch (e: Exception) {
-                tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
-            }
+        val localFile = word.audioPath?.let { File(it) }
+        if (localFile != null && localFile.exists()) {
+            playMedia(word, localFile.absolutePath)
+        } else if (!word.audioUrl.isNullOrEmpty()) {
+            playMedia(word, word.audioUrl!!)
         } else {
+            tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
+        }
+    }
+
+    private fun playMedia(word: WordEntity, source: String) {
+        val mediaPlayer = android.media.MediaPlayer()
+        try {
+            mediaPlayer.setDataSource(source)
+            mediaPlayer.setOnPreparedListener { it.start() }
+            mediaPlayer.setOnCompletionListener { it.release() }
+            mediaPlayer.setOnErrorListener { mp, _, _ ->
+                mp.release()
+                tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
+                true
+            }
+            mediaPlayer.prepareAsync()
+        } catch (e: Exception) {
+            mediaPlayer.release()
             tts?.speak(word.word, TextToSpeech.QUEUE_FLUSH, null, null)
         }
     }
@@ -586,6 +624,24 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
 
+    private fun stopRecordingSafely() {
+        if (isRecording || mediaRecorder != null) {
+            try {
+                mediaRecorder?.stop()
+            } catch (e: Exception) {
+                Log.e("Audio", "Error al detener grabación: ${e.message}")
+            } finally {
+                try {
+                    mediaRecorder?.release()
+                } catch (e: Exception) {
+                    Log.e("Audio", "Error al liberar MediaRecorder: ${e.message}")
+                }
+                mediaRecorder = null
+                isRecording = false
+            }
+        }
+    }
+
     private fun ocultarTeclado() {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         currentFocus?.let { imm.hideSoftInputFromWindow(it.windowToken, 0) }
@@ -596,6 +652,7 @@ class DictionaryActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
     }
 
     override fun onDestroy() {
+        stopRecordingSafely()
         tts?.stop(); tts?.shutdown()
         super.onDestroy()
     }
