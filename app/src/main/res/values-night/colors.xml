@@ -8,4 +8,7 @@
     <!-- Colores para el fondo dinámico en modo oscuro -->
     <color name="bg_start">#121212</color>
     <color name="bg_end">#1A1212</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#BDBDBD</color>
 </resources>

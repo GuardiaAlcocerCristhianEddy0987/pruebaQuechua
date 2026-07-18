@@ -8,4 +8,7 @@
     <!-- Colores para el fondo dinámico -->
     <color name="bg_start">#FFFFFF</color>
     <color name="bg_end">#FFF5F5</color>
+
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#444444</color>
 </resources>
